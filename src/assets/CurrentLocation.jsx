@@ -1,39 +1,78 @@
-let lat, long
+import { useEffect, useState } from "react";
+
+
+const API_KEY = import.meta.env.VITE_WEATHER_KEY;
+
+let lat, long;
+
 
 
 export function CurrentLocation() {
+    const [ tempScale, setTempScale] = useState("metric");
+    
+    const [ localWeather, setLocalWeather ] = useState(null);
+    
+    const [ error, setError ] = useState(null);
 
-    // Check for geolocation functionality
-    if (!('geolocation' in navigator)) {
-        return <h3>Browser does not support geolocation</h3>;
+
+
+    //* Check for geolocation functionality
+
+    if (!navigator.geolocation) {
+        setError("Geolocation is not supported for this browser")
         }
 
-    // Request user for current location data
-    navigator.geolocation.getCurrentPosition(
+    useEffect( () => {
+        
+        //* Request user for current location data
+
+        navigator.geolocation.getCurrentPosition(
         // If permitted
         (position) => {
             lat = position.coords.latitude;
             long = position.coords.longitude;
-            onPermissionGiven(lat, long)
+            onPermissionGiven(lat, long);
         },
         // If denied
         ( error) => {
-            return (
-                <>
-                <h3>
-                    "Unable to get local weather data"
-                </h3>
-                <p>Error: {error.message}</p>
-                </>
-            )
+            setError(`Error capturing data: ${error.name}`)
         }
-    )
+        )}
+    , [])
 
-    function onPermissionGiven(lat,long ) {
-        // GET current location weather info
-        fetch(`https://api.openweathermap.org/data/4.0/onecall/current?lat=${lat}&lon=${long}&lang=el&appid=${import.meta.env.VITE_WEATHER_KEY}`)
+    
+    
+    
+    
+    
+function onPermissionGiven(lat,long ) {
+        
+    //* GET location name
+        
+    fetch(`http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${long}&limit=1&appid=${API_KEY}`)
         .then( response => response.json())
-        .then( data => console.log(data))
-    }
-
+        .then( data => 
+            setLocalWeather( { 
+                location: data[0].name
+            } )
+            );
+            
+    //* GET location conditions
+    
+    fetch(`https://api.openweathermap.org/data/4.0/onecall/current?lat=${lat}&lon=${long}&units=${tempScale}&lang=en&appid=${API_KEY}`)
+    .then( response => response.json())
+    .then( 
+        ( { data: [ { temp, humidity, wind_speed, weather: [ {description, icon} ], } ] } ) => 
+        setLocalWeather( {
+            
+                ...localWeather,
+                conditions: description,
+                temperature: temp, //,
+                humidity,
+                windSpeed: (Math.floor(wind_speed) * 18) / 5, // Convert m/sec -> km/h
+                icon 
+            } )
+        )
+}   //}
+    
 }
