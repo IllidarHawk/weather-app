@@ -75,4 +75,33 @@ function onPermissionGiven(lat,long ) {
         )
 }   //}
     
+return (
+        <>
+        {/* If there error State occurs... */}
+        {error && <p style={{ marginTop: "20px", color: "red" }}>${error}</p>}
+        {/* Show loader for wait time */}
+        {!localWeather && <p style={{ marginTop: "20px", color: "white" }}>Loading...</p>}
+        {/* Disp;ay when ready */}
+        {localWeather &&
+        <section className="weather-card">
+            <div>
+                <h2>{localWeather.location}</h2>
+                <h3>{localWeather.conditions}</h3>
+                <p className="temp">{localWeather.temperature + (tempScale === "metric" ? "℃" : "℉") }</p>
+                <div className="details">
+                    <p className="detail">
+                        <span className="icon">💨</span>
+                        <span className="data">{localWeather.windSpeed + (tempScale === "metric" ? "km/h" : "ml/h")}</span>
+                    </p>
+                    <p className="detail">
+                        <span className="icon">💧</span>
+                        <span className="data">{localWeather.humidity}%</span>
+                    </p>
+                </div>
+            </div>
+            <img className="weather-con"alt="" src={`http://openweathermap.org/img/w/${localWeather.icon}.png`} />
+            
+        </section>}
+        </>
+)
 }
